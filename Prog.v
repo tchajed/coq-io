@@ -170,6 +170,10 @@ Due to a limitation of Coq's extraction, the prog type cannot be properly
 extracted to Haskell; the OpT index to the type is higher-kinded ([* -> *]),
 which is unsupported in OCaml and also in the intermediate language Coq
 extraction uses.
+
+For this reason, we must extract [fileProg], which specializes to a particular
+type for operations. Even so the Haskell types are unsatisfying due to Haskell
+not using GADTs in extracted code.
  *)
 Extraction "Prog.hs" fileProg copy.
 
