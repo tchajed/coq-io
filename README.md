@@ -8,11 +8,11 @@ The code here has a similar model, but is written in a more general way and atte
 
 # Compiling
 
-Run `make` to compile the Coq code and generate the Haskell library.
+Run `make` to compile the Coq code and generate the Haskell library. This compiles `Prog.v` with Coq and extracts to `word-count/src/Prog.hs`.
 
-Compile the Haskell library, interpreter, and a small driver program around the `countNewlines` example in `Prog.v` using Haskell Stack.
+From there, we have a hand-written interpreter (`word-count/src/Interpreter.hs`), and a driver program (`word-count/app/Main.hs`) around the `countNewlines` example in `Prog.v`.
 
-Stack requires a one-time setup to download the compiler:
+To compile the driver program and produce the `word-count` binary, use Haskell Stack. Stack requires a one-time setup to download the compiler:
 
 ```
 cd word-count
