@@ -1,4 +1,6 @@
-module Interpreter where
+module Interpreter
+  ( interpret
+  ) where
 
 import Prog
 import System.IO
@@ -12,6 +14,9 @@ fileInterpret h (Write a v) = do
   hSeek h AbsoluteSeek a
   hPutChar h v
   return $ unsafeCoerce ()
+fileInterpret h FileSize = do
+  len <- hFileSize h
+  return $ unsafeCoerce (len :: Integer)
 
 interpret :: Handle -> FileProg a -> IO a
 interpret _ (Ret a) = return a

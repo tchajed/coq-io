@@ -168,7 +168,7 @@ Fixpoint count_newlines_from n off : fileProg nat :=
             else count_newlines_from n (off+1)
   end.
 
-Definition count_newlines : fileProg nat :=
+Definition countNewlines : fileProg nat :=
   len <- Primitive FileSize;
     count_newlines_from len 0.
 
@@ -193,7 +193,7 @@ For this reason, we must extract [fileProg], which specializes to a particular
 type for operations. Even so the Haskell types are unsatisfying due to Haskell
 not using GADTs in extracted code.
  *)
-Extraction "Prog.hs" fileProg copy count_newlines.
+Extraction "word-count/src/Prog.hs" fileProg copy countNewlines.
 
 (* Local Variables: *)
 (* company-coq-local-symbols: (("State" . ?Σ)) *)

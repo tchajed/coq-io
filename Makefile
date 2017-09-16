@@ -1,8 +1,9 @@
-all: Prog.vo Interpreter.o
+all: Prog.vo
 
 
-Prog.vo Prog.hs: Prog.v
+Prog.vo word-count/src/Prog.hs: Prog.v
 	coqc $< -o $@
 
-Interpreter.o: Interpreter.hs Prog.hs
-	ghc $<
+clean:
+	rm -f *.glob *.vo
+	rm -f word-count/src/Prog.hs

@@ -1,0 +1,31 @@
+name:                word-count
+version:             0.1.0.0
+-- synopsis:
+-- description:
+license:             MIT
+author:              Tej Chajed
+maintainer:          tchajed@mit.edu
+copyright:           2017 Tej Chajed
+category:            System
+build-type:          Simple
+cabal-version:       >=1.10
+
+library
+  hs-source-dirs:      src
+  exposed-modules:     Prog
+                       Interpreter
+  build-depends:       base >= 4.7 && < 5
+                     , ghc-prim
+  default-language:    Haskell2010
+
+executable word-count
+  hs-source-dirs:      app
+  main-is:             Main.hs
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  build-depends:       base
+                     , word-count
+  default-language:    Haskell2010
+
+source-repository head
+  type:     git
+  location: https://github.com/tchajed/coq-io
