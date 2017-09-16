@@ -145,6 +145,7 @@ Definition fileProg T := prog FileOp T.
 Definition fileExec := exec file_step.
 
 Arguments Primitive {OpT} {T} op.
+Arguments Ret {OpT} {T} v.
 
 Notation "x <- p1 ; p2" := (Bind p1 (fun x => p2))
                             (at level 60, right associativity).
@@ -155,6 +156,22 @@ Definition copy (a a': offset) : fileProg unit :=
   v <- Primitive (Read a);
     Primitive (Write a' v).
 
+Axiom is_newline : byte -> bool.
+
+Fixpoint count_newlines_from n off : fileProg nat :=
+  match n with
+  | 0 => Ret 0
+  | S n => b <- Primitive (Read off);
+            if is_newline b
+            then (count <- count_newlines_from n (off+1);
+                    Ret (count+1))
+            else count_newlines_from n (off+1)
+  end.
+
+Definition count_newlines : fileProg nat :=
+  len <- Primitive FileSize;
+    count_newlines_from len 0.
+
 Require Extraction.
 
 Require Import ExtrHaskellBasic.
@@ -163,8 +180,9 @@ Require Import ExtrHaskellNatInteger.
 Extraction Language Haskell.
 
 Extract Constant byte => "GHC.Base.Char".
+Extract Constant is_newline => "(GHC.Base.== '\n')".
 
-(** Extract the syntax for file programs and our simple example program.
+(** Extract the syntax for file programs and our simple example programs.
 
 Due to a limitation of Coq's extraction, the prog type cannot be properly
 extracted to Haskell; the OpT index to the type is higher-kinded ([* -> *]),
@@ -175,7 +193,7 @@ For this reason, we must extract [fileProg], which specializes to a particular
 type for operations. Even so the Haskell types are unsatisfying due to Haskell
 not using GADTs in extracted code.
  *)
-Extraction "Prog.hs" fileProg copy.
+Extraction "Prog.hs" fileProg copy count_newlines.
 
 (* Local Variables: *)
 (* company-coq-local-symbols: (("State" . ?Σ)) *)
