@@ -1,3 +1,6 @@
+all: Prog.vo Interpreter.o
+
+
 Prog.vo Prog.hs: Prog.v
 	coqc $< -o $@
 

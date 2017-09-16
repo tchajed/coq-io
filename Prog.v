@@ -96,44 +96,62 @@ Section Prog.
 
 End Prog.
 
-(** Example of programs that can read and write a disk, with a simple byte
-interface. *)
+(** Example of programs that can read and write an input file, with a simple
+byte interface. *)
 
-(** We just uses natural numbers as addresses to the disk. *)
-Definition addr := nat.
+(** We just uses natural numbers as offsets into the file. *)
+Definition offset := nat.
 Axiom byte : Type.
 
-Inductive DiskOp : Type -> Type :=
-| Read : addr -> DiskOp byte
-| Write : addr -> byte -> DiskOp unit.
+Inductive FileOp : Type -> Type :=
+| Read : offset -> FileOp byte
+| Write : offset -> byte -> FileOp unit
+| FileSize : FileOp nat.
 
-(** A disk maps addresses to bytes. Not all addresses map to values (since the
-disk is finite). *)
-Definition Disk := addr -> option byte.
+Definition File := list byte.
 
-Definition upd (d:Disk) (a:nat) (v:byte) : Disk :=
-  fun a' => if Nat.eq_dec a a' then Some v else d a.
+Open Scope list.
 
-Inductive disk_step : forall T, Disk -> DiskOp T -> Disk -> T -> Prop :=
-  (** out-of-bounds reads get stuck *)
+Fixpoint fileGet (d:File) (a:nat) : option byte :=
+  match d, a with
+  | nil, _ => None
+  | b::_, 0 => Some b
+  | _::tl, S a => fileGet tl a
+  end.
+
+Fixpoint fileUpd (d:File) (a:nat) (v:byte) : File :=
+  match d, a with
+  | nil, _ => d
+  | _::tl, 0 => v::tl
+  | b::tl, S a => b :: fileUpd tl a v
+  end.
+
+Inductive file_step : forall T, File -> FileOp T -> File -> T -> Prop :=
+(** out-of-bounds reads get stuck *)
 | step_read : forall d a v,
-    d a = Some v ->
-    disk_step d (Read a) d v
-(** out-of-bounds writes also get stuck  *)
+    fileGet d a = Some v ->
+    file_step d (Read a) d v
+(** out-of-bounds writes also get stuck, though we could choose to model them as
+    growing the file *)
 | step_write : forall d a v0 v',
-    d a = Some v0 ->
-    disk_step d (Write a v') (upd d a v') tt.
+    fileGet d a = Some v0 ->
+    file_step d (Write a v') (fileUpd d a v') tt
+(** programs can also ask for the size of the file *)
+| step_size : forall d,
+    file_step d (FileSize) d (length d).
 
-Definition diskProg T := prog DiskOp T.
+Definition fileProg T := prog FileOp T.
 
-Definition diskExec := exec disk_step.
+Definition fileExec := exec file_step.
 
 Arguments Primitive {OpT} {T} op.
 
 Notation "x <- p1 ; p2" := (Bind p1 (fun x => p2))
                             (at level 60, right associativity).
 
-Definition copy a a' :=
+(** Simple example of a program that copies a byte from one location to another.
+ *)
+Definition copy (a a': offset) : fileProg unit :=
   v <- Primitive (Read a);
     Primitive (Write a' v).
 
@@ -146,14 +164,14 @@ Extraction Language Haskell.
 
 Extract Constant byte => "GHC.Base.Char".
 
-(** Extract the syntax for disk programs and our simple example program.
+(** Extract the syntax for file programs and our simple example program.
 
 Due to a limitation of Coq's extraction, the prog type cannot be properly
 extracted to Haskell; the OpT index to the type is higher-kinded ([* -> *]),
 which is unsupported in OCaml and also in the intermediate language Coq
 extraction uses.
  *)
-Extraction "Prog.hs" diskProg copy.
+Extraction "Prog.hs" fileProg copy.
 
 (* Local Variables: *)
 (* company-coq-local-symbols: (("State" . ?Σ)) *)
