@@ -1,0 +1,6 @@
+*.vo
+*.glob
+.*.aux
+Prog.hs
+*.o
+*.hi
