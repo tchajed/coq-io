@@ -33,5 +33,7 @@ Then you can compile and run the binary:
 
 ```
 stack build
-stack exec word-count <file>
+stack exec word-count -- <file>
 ```
+
+This should give the same output as `wc -l <file>`.
