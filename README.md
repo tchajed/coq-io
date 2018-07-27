@@ -8,7 +8,7 @@ The code here has a similar model, but is written in a more general way and atte
 
 # Overview
 
-The Coq model has a very generic definition `prog`, which takes an argument `OpT : Type -> Type` giving the type constructor for the primitives (the type argument indicates the return type). Primitives are chained using `Ret` and `Bind`. Then there's an execution semantics, which is expresses the behavior of a program in terms of how it transforms some state type and what return values are allowed (the semantics are relational, so non-determinism is allowed). These semantics specify how `Ret` and `Bind` work and take a parameter `step` for the behavior of the primitives.
+The Coq model has a very generic definition `prog`, which takes an argument `Op : Type -> Type` giving the type constructor for the primitives (the type argument indicates the return type). Primitives are chained using `Ret` and `Bind`. Then there's an execution semantics, which is expresses the behavior of a program in terms of how it transforms some state type and what return values are allowed (the semantics are relational, so non-determinism is allowed). These semantics specify how `Ret` and `Bind` work and take a parameter `step` for the behavior of the primitives.
 
 As an example, we define `FileOp`, a set of primitives for access to a single input file. These operations have a semantics, in terms of a state which is simply a list of bytes (which we call a `File`). Then there are two example programs of type `prog FileOp T`: one copies a byte, the other is a fixpoint `countNewlines` that counts newlines in the file.
 

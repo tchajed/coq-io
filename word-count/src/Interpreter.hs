@@ -23,4 +23,4 @@ interpret _ (Ret a) = return a
 interpret h (Bind p p') = do
   r <- interpret h p
   interpret h (p' r)
-interpret h (Primitive op) = unsafeCoerce <$> fileInterpret h op
+interpret h (Call op) = unsafeCoerce <$> fileInterpret h op

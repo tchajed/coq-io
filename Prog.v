@@ -6,22 +6,22 @@ Set Implicit Arguments.
 
 (** Free monad over a set of primitive operations. *)
 Section Prog.
-  (** The type constructor for primitive operations. An [OpT T] represents a
+  (** The type constructor for primitive operations. An [Op T] represents a
       primitive operation that ultimately returns a T. *)
-  Variable OpT : Type -> Type.
+  Variable Op : Type -> Type.
 
-  (** A free monad over OpT that sequences primitive [OpT T] values with [Ret]
+  (** A free monad over Op that sequences primitive [Op T] values with [Ret]
       and [Bind]. A [prog T] is a computation that returns a T-typed result. It may
       have effects, as described in an relational operational semantics below. *)
   Inductive prog T :=
-  | Primitive : OpT T -> prog T
+  | Call : Op T -> prog T
   | Ret : T -> prog T
   | Bind : forall T', prog T' -> (T' -> prog T) -> prog T.
 
   Variable State : Type.
 
   (** Parameter providing semantics for every operation. *)
-  Variable step : forall T, State -> OpT T -> State -> T -> Prop.
+  Variable step : forall T, State -> Op T -> State -> T -> Prop.
 
   (** Simple execution semantics: models executing programs to return values.
       Operations can be non-deterministic, but there is no model of failure
@@ -34,10 +34,10 @@ Section Prog.
       exec s p s' v ->
       exec s' (p' v) s'' v' ->
       exec s (Bind p p') s'' v'
-  | exec_Primitive : forall T (op: OpT T)
+  | exec_Call : forall T (op: Op T)
                        s s' v,
       step s op s' v ->
-      exec s (Primitive op) s' v.
+      exec s (Call op) s' v.
 
   (** We prove that the semantics respect the monad laws (the obvious property
       they should satisfy). *)
@@ -144,8 +144,8 @@ Definition fileProg T := prog FileOp T.
 
 Definition fileExec := exec file_step.
 
-Arguments Primitive {OpT} {T} op.
-Arguments Ret {OpT} {T} v.
+Arguments Call {Op} {T} op.
+Arguments Ret {Op} {T} v.
 
 Notation "x <- p1 ; p2" := (Bind p1 (fun x => p2))
                             (at level 60, right associativity).
@@ -153,15 +153,15 @@ Notation "x <- p1 ; p2" := (Bind p1 (fun x => p2))
 (** Simple example of a program that copies a byte from one location to another.
  *)
 Definition copy (a a': offset) : fileProg unit :=
-  v <- Primitive (Read a);
-    Primitive (Write a' v).
+  v <- Call (Read a);
+    Call (Write a' v).
 
 Axiom is_newline : byte -> bool.
 
 Fixpoint count_newlines_from n off : fileProg nat :=
   match n with
   | 0 => Ret 0
-  | S n => b <- Primitive (Read off);
+  | S n => b <- Call (Read off);
             if is_newline b
             then (count <- count_newlines_from n (off+1);
                     Ret (count+1))
@@ -169,7 +169,7 @@ Fixpoint count_newlines_from n off : fileProg nat :=
   end.
 
 Definition countNewlines : fileProg nat :=
-  len <- Primitive FileSize;
+  len <- Call FileSize;
     count_newlines_from len 0.
 
 Require Extraction.
@@ -185,7 +185,7 @@ Extract Constant is_newline => "(GHC.Base.== '\n')".
 (** Extract the syntax for file programs and our simple example programs.
 
 Due to a limitation of Coq's extraction, the prog type cannot be properly
-extracted to Haskell; the OpT index to the type is higher-kinded ([* -> *]),
+extracted to Haskell; the Op index to the type is higher-kinded ([* -> *]),
 which is unsupported in OCaml and also in the intermediate language Coq
 extraction uses.
 
