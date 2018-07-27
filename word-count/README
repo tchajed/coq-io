@@ -1,0 +1,1 @@
+To build, use `stack build`. To run, use `stack exec word-count -- <filename>`, which should behave like `wc -l <filename>`.
